@@ -1,0 +1,101 @@
+# AutoCoder Configuration
+
+## Model Configuration
+model:
+  # Default model for code generation
+  default: "deepseek-coder:14b"
+  
+  # Task-specific model selection
+  code_generation: "deepseek-coder:14b"
+  reasoning: "deepseek-r1:7b"
+  natural_response: "llama3.2:3b"
+  verification: "stable-code:3b"
+  web_search: "llama3.2:3b"
+
+## Hardware Configuration
+hardware:
+  # Enable automatic GPU detection
+  gpu_detection: true
+  
+  # Auto-scale model based on hardware
+  auto_scale: true
+  
+  # Default quantization
+  quantization: "q4_0"
+  
+  # CUDA device (0 for primary GPU)
+  cuda_device: 0
+
+## Ollama Configuration
+ollama:
+  base_url: "http://localhost:11434"
+  timeout: 180
+  retry_attempts: 3
+  retry_delay: 2
+
+## OpenAI Configuration
+openai:
+  default_model: "gpt-4o"
+  timeout: 120
+
+## Anthropic Configuration
+anthropic:
+  default_model: "claude-sonnet-4-20250514"
+  timeout: 120
+
+## Security Configuration
+security:
+  # Enable audit logging
+  enable_audit: true
+  
+  # Rate limiting
+  rate_limit: 100
+  rate_window: 60  # seconds
+  
+  # Key derivation iterations (OWASP 2024)
+  key_iterations: 600000
+  
+  # Key storage directory
+  key_store_dir: ".autocoder/keys"
+
+## Memory Configuration
+memory:
+  # Memory storage directory
+  base_path: "memory"
+  
+  # Episodic memory settings
+  max_episodes: 1000
+  
+  # Knowledge graph settings
+  enable_kg: true
+  
+  # Semantic memory settings
+  enable_semantic: true
+
+## Tool Configuration
+tools:
+  # File operations
+  allowed_extensions: [".py", ".js", ".ts", ".rs", ".go", ".java", ".c", ".cpp", ".cs", ".swift", ".kt"]
+  
+  # Command execution
+  max_command_timeout: 120
+  
+  # Web search
+  search_results: 5
+
+## Verification Configuration
+verification:
+  # Enable formal verification
+  enable_verification: false
+  
+  # Lean project directory
+  lean_project_dir: "lean"
+  
+  # Proof timeout (seconds)
+  proof_timeout: 300
+
+## Logging Configuration
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "autocoder.log"
