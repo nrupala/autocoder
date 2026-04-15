@@ -43,8 +43,9 @@ def main():
         run_gui()
     
     elif cmd == "api" or cmd == "daemon":
-        from daemon import run_server
-        run_server()
+        print("Starting AutoCoder API daemon on port 5000...")
+        from gui import app
+        app.run(host='0.0.0.0', port=5000, debug=False)
     
     elif cmd == "cli":
         from cli import run_cli
