@@ -89,6 +89,76 @@ def list_experiences():
         "tags": e.tags,
         "timestamp": e.timestamp
     } for e in exp])
+
+
+@app.route('/api/tasks', methods=['GET'])
+def list_tasks():
+    """Get all tasks"""
+    from tasks import get_tracker, get_stats
+    repo = request.args.get('repo')
+    status = request.args.get('status')
+    return jsonify({
+        "tasks": get_tracker().get_tasks(repo, status),
+        "stats": get_stats()
+    })
+
+
+@app.route('/api/tasks', methods=['POST'])
+def add_task():
+    """Add a task"""
+    from tasks import add_task
+    data = request.json
+    task_id = add_task(data.get('repo'), data.get('task'), data.get('priority', 'medium'))
+    return jsonify({"id": task_id})
+
+
+@app.route('/api/tasks/<int:task_id>', methods=['PATCH'])
+def update_task(task_id):
+    """Update a task"""
+    from tasks import get_tracker
+    data = request.json
+    tracker = get_tracker()
+    tracker.update_task(task_id, data.get('status'), data.get('error'), data.get('result'))
+    return jsonify({"id": task_id})
+
+
+@app.route('/api/repos', methods=['GET'])
+def list_repos():
+    """Get repos status"""
+    from tasks import get_tracker
+    return jsonify(get_tracker().get_repos_status())
+
+
+@app.route('/api/repos/<repo>/build', methods=['POST'])
+def build_repo(repo):
+    """Build a repo"""
+    from tasks import ProductionRunner
+    import asyncio
+    runner = ProductionRunner()
+    result = asyncio.run(runner.build_repo(repo))
+    return jsonify(result)
+
+
+@app.route('/api/repos/<repo>/push', methods=['POST'])
+def push_repo(repo):
+    """Push repo to GitHub"""
+    from tasks import ProductionRunner
+    import asyncio
+    runner = ProductionRunner()
+    result = asyncio.run(runner.push_to_github(repo))
+    return jsonify(result)
+
+
+@app.route('/api/version', methods=['GET'])
+def get_version():
+    """Get AutoCoder version"""
+    return jsonify({
+        "version": "1.0.0",
+        "name": "AutoCoder",
+        "build": "2026.04.15",
+        "features": ["mcp", "meta-cognition", "task-tracker", "production-runner"]
+    })
+    } for e in exp])
     
     result = {
         "ollama": status.get("ollama", False),
