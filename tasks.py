@@ -45,11 +45,11 @@ class TaskTracker:
         self._init_db()
         
         self.repos = {
-            "autocoder": {"path": "C:/Users/nrupa/autocoder", "status": "working"},
+            "autocoder": {"path": "D:/autocoder", "status": "working"},
             "uis": {"path": "D:/UIS", "status": "working"},
             "axiomcode": {"path": "D:/axiomcode", "status": "working"},
-            "sllm": {"path": "D:/sl/projects/sllm", "status": "needs-update"},
-            "simplicity": {"path": "D:/simplicity", "status": "needs-update"},
+            "sllm": {"path": "D:/sl/projects/sllm", "status": "working"},
+            "simplicity": {"path": "D:/simplicity", "status": "working"},
         }
     
     def _init_db(self):
