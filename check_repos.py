@@ -1,3 +1,5 @@
+# Copyright (c) 2026 AutoCoder Team.
+# Licensed under the MIT License - see LICENSE at the repository root.
 """Check repo production readiness"""
 from pathlib import Path
 

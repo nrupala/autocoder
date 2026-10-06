@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+# Copyright (c) 2026 AutoCoder Team.
+# Licensed under the MIT License - see LICENSE at the repository root.
 """
 AutoCoder - Autonomous AI Coding Engine
 ================================

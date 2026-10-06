@@ -1,3 +1,5 @@
+# Copyright (c) 2026 AutoCoder Team.
+# Licensed under the MIT License - see LICENSE at the repository root.
 """
 AutoCoder LLM Cache
 Reduces cost and latency by caching LLM responses

@@ -1,3 +1,5 @@
+# Copyright (c) 2026 AutoCoder Team.
+# Licensed under the MIT License - see LICENSE at the repository root.
 """
 AutoCoder Process Manager
 Manages concurrent processes: Ollama, LM Studio, Docker, etc.
