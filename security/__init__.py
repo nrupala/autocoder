@@ -1,3 +1,5 @@
+# Copyright (c) 2026 AutoCoder Team.
+# Licensed under the MIT License - see LICENSE at the repository root.
 """AutoCoder Security package."""
 
 from security.key_store import (

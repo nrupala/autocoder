@@ -1,3 +1,5 @@
+# Copyright (c) 2026 AutoCoder Team.
+# Licensed under the MIT License - see LICENSE at the repository root.
 from pydantic import BaseModel, Field
 from typing import Optional, Literal
 from datetime import datetime

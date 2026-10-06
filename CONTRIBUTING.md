@@ -2,11 +2,25 @@
 
 Thank you for your interest in contributing to AutoCoder!
 
+## PR-flow discipline (required)
+
+- **Draft PRs only.** Every change ships as a draft pull request against
+  `master`; direct pushes to `master` are retired. CI must be green
+  (`tests.yml`, `lint.yml`, `typecheck.yml`) before review, and the owner
+  merges when ready.
+- **No direct pushes to `master`.**
+- **CHANGELOG entry.** Every PR adds an entry under `## [Unreleased]` in
+  `CHANGELOG.md` describing the change.
+- **Version bump.** `pyproject.toml` `version` follows semver: `patch`=fix,
+  `minor`=feature, `major`=breaking.
+- **Merge commits reference the PR number.** Releases are tagged `vX.Y.Z`
+  after merge.
+
 ## Development Setup
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/autocoder.git
+git clone https://github.com/nrupala/autocoder.git
 cd autocoder
 
 # Create virtual environment
@@ -59,9 +73,10 @@ pytest tests/test_core.py -v
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Make your changes
 4. Run tests and linting
-5. Commit with conventional commits
-6. Push to your fork
-7. Submit a Pull Request
+5. Add your `CHANGELOG.md` entry under `## [Unreleased]`
+6. Commit with conventional commits
+7. Push to your fork
+8. Submit a **draft** Pull Request
 
 ## Commit Message Format
 
@@ -87,3 +102,8 @@ Types:
 - Be respectful and inclusive
 - Provide constructive feedback
 - Welcome newcomers
+
+## License
+
+By contributing, you agree that your contributions are licensed under the
+MIT License (see `LICENSE`).

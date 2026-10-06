@@ -1,3 +1,5 @@
+# Copyright (c) 2026 AutoCoder Team.
+# Licensed under the MIT License - see LICENSE at the repository root.
 from functools import wraps
 from typing import Callable, Any
 import time

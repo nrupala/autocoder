@@ -1,3 +1,5 @@
+# Copyright (c) 2026 AutoCoder Team.
+# Licensed under the MIT License - see LICENSE at the repository root.
 """
 MetaCognition Layer
 Monitors generation quality, patterns, and self-improvement
