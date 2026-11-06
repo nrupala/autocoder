@@ -68,7 +68,8 @@ def generate():
         result = gen(prompt)
         return jsonify({"repo": target, "code": result})
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        logger.error(f"Generate error ({target}): {e}")
+        return jsonify({"error": "Code generation failed"}), 500
 
 
 @app.route("/api/build/<repo>", methods=["POST"])
@@ -92,7 +93,8 @@ def build_repo(repo):
             "output": result.stdout
         })
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        logger.error(f"Build error ({repo}): {e}")
+        return jsonify({"error": "Build failed"}), 500
 
 
 @app.route("/api/all/build", methods=["POST"])

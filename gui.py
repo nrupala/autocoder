@@ -30,7 +30,7 @@ def generate():
         return jsonify({"code": result})
     except Exception as e:
         logger.error(f"Generate error: {e}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "Code generation failed"}), 500
 
 
 @app.route('/api/status', methods=['GET'])
