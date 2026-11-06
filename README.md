@@ -1,5 +1,13 @@
 # AutoCoder 🧠⚡
 
+> **Status — 2026-11-06: parts bin, no longer maintained.** This repository is not
+> maintained as a product; it is kept as a parts bin. Its useful components were
+> harvested into other lines: the key store and verification work went into the
+> release-gate line, and the model-routing primitives and GPU-tier detection went
+> into RamGpu / Switchboard. No new development, issue responses, or releases
+> should be expected. The code remains available under its licence for reference
+> and reuse as parts.
+
 > Universal Autonomous Coding Agent - Write code, verify it, learn, evolve.
 
 AutoCoder is a next-generation AI coding assistant with **built-in autonomous daemon** that works without external LLM dependencies:
