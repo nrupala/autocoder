@@ -5,9 +5,7 @@ AutoCoder Core - Hardware Detection & Optimization
 """
 
 import platform
-import os
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass
@@ -44,6 +42,7 @@ class HardwareDetector:
 
         try:
             import psutil
+
             profile.cpu_count = psutil.cpu_count(logical=False) or 1
             profile.ram_total = psutil.virtual_memory().total
         except ImportError:
@@ -51,6 +50,7 @@ class HardwareDetector:
 
         try:
             import torch
+
             if torch.cuda.is_available():
                 profile.has_cuda = True
                 profile.gpu_count = torch.cuda.device_count()
@@ -72,23 +72,35 @@ class HardwareDetector:
 
         if mem_gb >= 24:
             return ExecutionConfig(
-                use_gpu=True, model_quantization="q2_K", batch_size=64,
-                parallel_workers=8, model="deepseek-coder:14b"
+                use_gpu=True,
+                model_quantization="q2_K",
+                batch_size=64,
+                parallel_workers=8,
+                model="deepseek-coder:14b",
             )
         elif mem_gb >= 16:
             return ExecutionConfig(
-                use_gpu=True, model_quantization="q4_0", batch_size=32,
-                parallel_workers=4, model="deepseek-coder:14b"
+                use_gpu=True,
+                model_quantization="q4_0",
+                batch_size=32,
+                parallel_workers=4,
+                model="deepseek-coder:14b",
             )
         elif mem_gb >= 10:
             return ExecutionConfig(
-                use_gpu=True, model_quantization="q4_0", batch_size=16,
-                parallel_workers=2, model="qwen2.5-coder:7b"
+                use_gpu=True,
+                model_quantization="q4_0",
+                batch_size=16,
+                parallel_workers=2,
+                model="qwen2.5-coder:7b",
             )
         else:
             return ExecutionConfig(
-                use_gpu=True, model_quantization="q5_1", batch_size=8,
-                parallel_workers=1, model="phi3:3b"
+                use_gpu=True,
+                model_quantization="q5_1",
+                batch_size=8,
+                parallel_workers=1,
+                model="phi3:3b",
             )
 
     def _cpu_config(self) -> ExecutionConfig:
@@ -96,29 +108,41 @@ class HardwareDetector:
 
         if ram_gb >= 32:
             return ExecutionConfig(
-                use_gpu=False, model_quantization="q8_0", batch_size=8,
-                parallel_workers=4, model="llama3.2:3b"
+                use_gpu=False,
+                model_quantization="q8_0",
+                batch_size=8,
+                parallel_workers=4,
+                model="llama3.2:3b",
             )
         elif ram_gb >= 16:
             return ExecutionConfig(
-                use_gpu=False, model_quantization="q5_1", batch_size=4,
-                parallel_workers=2, model="llama3.2:3b"
+                use_gpu=False,
+                model_quantization="q5_1",
+                batch_size=4,
+                parallel_workers=2,
+                model="llama3.2:3b",
             )
         elif ram_gb >= 8:
             return ExecutionConfig(
-                use_gpu=False, model_quantization="q4_0", batch_size=2,
-                parallel_workers=1, model="llama3.2:1b"
+                use_gpu=False,
+                model_quantization="q4_0",
+                batch_size=2,
+                parallel_workers=1,
+                model="llama3.2:1b",
             )
         else:
             return ExecutionConfig(
-                use_gpu=False, model_quantization="q4_0", batch_size=1,
-                parallel_workers=1, model="stable-code:3b"
+                use_gpu=False,
+                model_quantization="q4_0",
+                batch_size=1,
+                parallel_workers=1,
+                model="stable-code:3b",
             )
 
 
 def get_optimal_model_for_task(task_type: str, config: ExecutionConfig) -> str:
     """Get optimal model based on task type and hardware."""
-    
+
     model_map = {
         "code_generation": [
             ("deepseek-coder:14b", 16),
@@ -143,7 +167,7 @@ def get_optimal_model_for_task(task_type: str, config: ExecutionConfig) -> str:
     }
 
     candidates = model_map.get(task_type, model_map["code_generation"])
-    
+
     if config.use_gpu:
         mem_gb = config.batch_size * 2
         for model, min_mem in candidates:

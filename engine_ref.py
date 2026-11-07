@@ -13,7 +13,7 @@ CLASSES_AND_METHODS = {
             "_adjust_for_mode": 309,
             "_fallback_generate": 311,
             "get_status": None,  # TODO: add
-        }
+        },
     },
     "LlamaCppEngine": {
         "line": 28,
@@ -23,7 +23,7 @@ CLASSES_AND_METHODS = {
             "load_model": 62,
             "generate": 126,
             "stop": 165,
-        }
+        },
     },
     "LocalModelManager": {
         "line": 172,
@@ -33,21 +33,21 @@ CLASSES_AND_METHODS = {
             "_detect_quantization": 212,
             "get_models": None,  # TODO: find
             "find_model": None,  # TODO: find
-        }
+        },
     },
     "OllamaWrapper": {
         "line": 958,
         "methods": {
             "__init__": 962,
             "generate": 966,
-        }
+        },
     },
     "LMStudioWrapper": {
         "line": 983,
         "methods": {
             "__init__": 986,
             "generate": 990,
-        }
+        },
     },
 }
 

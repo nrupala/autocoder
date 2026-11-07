@@ -4,12 +4,11 @@
 AutoCoder Tools - File system and code operations
 """
 
+import logging
 import os
 import subprocess
-import shlex
 from pathlib import Path
-from typing import Any, Optional
-import logging
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +17,7 @@ class FileSystemTool:
     """File system operations."""
 
     @staticmethod
-    def read_file(path: str, limit: int = None, offset: int = None) -> str:
+    def read_file(path: str, limit: int | None = None, offset: int | None = None) -> str:
         p = Path(path)
         if not p.exists():
             return f"Error: File not found: {path}"
@@ -51,7 +50,7 @@ class FileSystemTool:
             return f"Error: Directory not found: {path}"
         if not p.is_dir():
             return f"Error: Not a directory: {path}"
-        
+
         items = []
         for item in sorted(p.iterdir()):
             size = item.stat().st_size if item.is_file() else 0
@@ -61,15 +60,17 @@ class FileSystemTool:
     @staticmethod
     def glob(pattern: str, path: str = ".") -> list[str]:
         from glob import glob as _glob
+
         results = _glob(os.path.join(path, pattern))
         return results
 
     @staticmethod
     def grep(pattern: str, path: str = ".", include: str = "*") -> list[dict]:
         import re
+
         results = []
         path_obj = Path(path)
-        
+
         for file_path in path_obj.rglob(include):
             if not file_path.is_file():
                 continue
@@ -77,12 +78,8 @@ class FileSystemTool:
                 content = file_path.read_text(encoding="utf-8", errors="ignore")
                 for i, line in enumerate(content.split("\n"), 1):
                     if re.search(pattern, line):
-                        results.append({
-                            "file": str(file_path),
-                            "line": i,
-                            "content": line.strip()
-                        })
-            except:
+                        results.append({"file": str(file_path), "line": i, "content": line.strip()})
+            except Exception:
                 pass
         return results
 
@@ -109,16 +106,18 @@ class CodeTool:
     }
 
     @staticmethod
-    def format_code(path: str, language: str = None) -> str:
+    def format_code(path: str, language: str | None = None) -> str:
         if not language:
             language = CodeTool._detect_language(path)
-        
+
         try:
             if language == "python":
                 result = subprocess.run(["black", path], capture_output=True, text=True)
                 return result.stdout or "Formatted with black"
             elif language == "javascript" or language == "typescript":
-                result = subprocess.run(["prettier", "--write", path], capture_output=True, text=True)
+                result = subprocess.run(
+                    ["prettier", "--write", path], capture_output=True, text=True
+                )
                 return result.stdout or "Formatted with prettier"
             elif language == "rust":
                 result = subprocess.run(["rustfmt", path], capture_output=True, text=True)
@@ -131,22 +130,18 @@ class CodeTool:
             return f"Error: {e}"
 
     @staticmethod
-    def lint_code(path: str, language: str = None) -> dict:
+    def lint_code(path: str, language: str | None = None) -> dict:
         if not language:
             language = CodeTool._detect_language(path)
-        
+
         try:
             if language == "python":
                 result = subprocess.run(
-                    ["flake8", path, "--max-line-length=100"],
-                    capture_output=True, text=True
+                    ["flake8", path, "--max-line-length=100"], capture_output=True, text=True
                 )
                 return {"errors": result.stdout.split("\n"), "warnings": result.stderr.split("\n")}
             elif language == "javascript" or language == "typescript":
-                result = subprocess.run(
-                    ["eslint", path],
-                    capture_output=True, text=True
-                )
+                result = subprocess.run(["eslint", path], capture_output=True, text=True)
                 return {"errors": result.stdout.split("\n")}
             else:
                 return {"errors": [], "message": f"No linter for {language}"}
@@ -168,7 +163,7 @@ class CodeTool:
         p = Path(path)
         if not p.exists():
             return {"error": "File not found"}
-        
+
         stat = p.stat()
         return {
             "path": str(p.absolute()),
@@ -183,15 +178,10 @@ class ExecutionTool:
     """Shell command execution."""
 
     @staticmethod
-    def run_command(cmd: str, timeout: int = 120, cwd: str = None) -> dict:
+    def run_command(cmd: str, timeout: int = 120, cwd: str | None = None) -> dict:
         try:
             result = subprocess.run(
-                cmd,
-                shell=True,
-                capture_output=True,
-                text=True,
-                timeout=timeout,
-                cwd=cwd
+                cmd, shell=True, capture_output=True, text=True, timeout=timeout, cwd=cwd
             )
             return {
                 "success": result.returncode == 0,
@@ -207,14 +197,14 @@ class ExecutionTool:
     @staticmethod
     def run_tests(path: str, framework: str = "pytest", verbose: bool = True) -> dict:
         cmd = {
-            "pytest": f'pytest {path} {"-v" if verbose else ""}',
-            "jest": f'npm test -- {path}',
-            "go test": f'go test {path}',
-            "cargo test": f'cargo test --manifest-path {Path(path).parent / "Cargo.toml"}',
-            "npm test": f'npm test {path}',
-            "dotnet test": f'dotnet test {path}',
-        }.get(framework, f'{framework} {path}')
-        
+            "pytest": f"pytest {path} {'-v' if verbose else ''}",
+            "jest": f"npm test -- {path}",
+            "go test": f"go test {path}",
+            "cargo test": f"cargo test --manifest-path {Path(path).parent / 'Cargo.toml'}",
+            "npm test": f"npm test {path}",
+            "dotnet test": f"dotnet test {path}",
+        }.get(framework, f"{framework} {path}")
+
         return ExecutionTool.run_command(cmd, timeout=180)
 
     @staticmethod
@@ -229,7 +219,7 @@ class ExecutionTool:
         cmd = commands.get(language, "")
         if not cmd:
             return {"success": False, "error": f"Unknown language: {language}"}
-        
+
         return ExecutionTool.run_command(cmd, cwd=path)
 
 
@@ -240,26 +230,30 @@ class WebTool:
     def search(query: str, num_results: int = 5) -> list[dict]:
         try:
             from exa_py import Exa
+
             exa = Exa(os.environ.get("EXA_API_KEY", ""))
             results = exa.search(query, num_results=num_results)
             return [{"title": r.title, "url": r.url, "text": r.text[:200]} for r in results]
         except ImportError:
             pass
-        
+
         try:
             import requests
+
             params = {"q": query, "format": "json"}
             resp = requests.get("https://ddg-api.vercel.app/search", params=params, timeout=10)
-            return resp.json()[:num_results]
-        except:
+            ddg_results: list[dict] = resp.json()[:num_results]
+            return ddg_results
+        except Exception:
             pass
-        
+
         return [{"error": "No search engine available"}]
 
     @staticmethod
     def fetch_url(url: str) -> str:
         try:
             import requests
+
             resp = requests.get(url, timeout=30)
             return resp.text[:5000]
         except Exception as e:
@@ -289,10 +283,10 @@ class ToolRegistry:
             "web_search": self.web.search,
             "fetch_url": self.web.fetch_url,
         }
-        
+
         if tool_name not in tool_map:
             return {"error": f"Unknown tool: {tool_name}"}
-        
+
         return tool_map[tool_name](**kwargs)
 
     def list_tools(self) -> list[dict]:

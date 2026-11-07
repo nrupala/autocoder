@@ -1,11 +1,12 @@
 # Copyright (c) 2026 AutoCoder Team.
 # Licensed under the MIT License - see LICENSE at the repository root.
 """Check repo production readiness"""
+
 from pathlib import Path
 
 repos = {
     "autocoder": "D:/autocoder",
-    "uis": "D:/UIS", 
+    "uis": "D:/UIS",
     "axiomcode": "D:/axiomcode",
     "sllm": "D:/sl/projects/sllm",
 }
@@ -17,7 +18,7 @@ for name, path in repos.items():
     has_reqs = (p / "requirements.txt").exists()
     has_wf = (p / ".github/workflows").exists()
     has_tests = any((p / "tests").glob("*.py")) or any(p.glob("test_*.py"))
-    
+
     print(f"{name}:")
     print(f"  README: {'Y' if has_readme else 'N'}")
     print(f"  requirements: {'Y' if has_reqs else 'N'}")

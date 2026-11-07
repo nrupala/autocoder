@@ -3,16 +3,16 @@
 """AutoCoder - Models package."""
 
 from models.orchestrator import (
+    AnthropicClient,
+    LMStudioClient,
     ModelOrchestrator,
     OllamaClient,
     OpenAIClient,
-    AnthropicClient,
-    LMStudioClient,
 )
 
 __all__ = [
     "ModelOrchestrator",
-    "OllamaClient", 
+    "OllamaClient",
     "OpenAIClient",
     "AnthropicClient",
     "LMStudioClient",

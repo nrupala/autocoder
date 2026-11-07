@@ -4,12 +4,9 @@
 AutoCoder Models - Multi-model orchestration
 """
 
-import os
-import json
 import logging
+import os
 from dataclasses import dataclass
-from typing import Any, Optional
-from urllib.parse import urlparse
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +24,7 @@ class ModelInfo:
 class BaseModelClient:
     """Base class for model clients."""
 
-    def __init__(self, base_url: str, api_key: Optional[str] = None):
+    def __init__(self, base_url: str, api_key: str | None = None):
         self.base_url = base_url
         self.api_key = api_key
 
@@ -35,6 +32,12 @@ class BaseModelClient:
         raise NotImplementedError
 
     def chat(self, messages: list[dict], **kwargs) -> dict:
+        raise NotImplementedError
+
+    def is_available(self) -> bool:
+        raise NotImplementedError
+
+    def list_models(self) -> list[dict]:
         raise NotImplementedError
 
 
@@ -49,9 +52,10 @@ class OllamaClient(BaseModelClient):
     def _check_connection(self) -> bool:
         try:
             import requests
+
             resp = requests.get(f"{self.base_url}/api/tags", timeout=5)
             return resp.status_code == 200
-        except:
+        except Exception:
             return False
 
     def is_available(self) -> bool:
@@ -60,13 +64,16 @@ class OllamaClient(BaseModelClient):
     def list_models(self) -> list[dict]:
         try:
             import requests
+
             resp = requests.get(f"{self.base_url}/api/tags", timeout=10)
-            return resp.json().get("models", [])
-        except:
+            models: list[dict] = resp.json().get("models", [])
+            return models
+        except Exception:
             return []
 
     def generate(self, prompt: str, **kwargs) -> str:
         import requests
+
         model_name = self.model.split(":")[0] if ":" in self.model else self.model
         payload = {
             "model": model_name,
@@ -75,23 +82,23 @@ class OllamaClient(BaseModelClient):
             "options": {
                 "temperature": kwargs.get("temperature", 0.2),
                 "num_predict": kwargs.get("max_tokens", 4096),
-            }
+            },
         }
 
         try:
             resp = requests.post(
-                f"{self.base_url}/api/generate",
-                json=payload,
-                timeout=kwargs.get("timeout", 180)
+                f"{self.base_url}/api/generate", json=payload, timeout=kwargs.get("timeout", 180)
             )
             resp.raise_for_status()
-            return resp.json().get("response", "")
+            response: str = resp.json().get("response", "")
+            return response
         except Exception as e:
             logger.error(f"Ollama generation failed: {e}")
             return f"Error: {e}"
 
     def chat(self, messages: list[dict], **kwargs) -> dict:
         import requests
+
         payload = {
             "model": self.model,
             "messages": messages,
@@ -99,7 +106,7 @@ class OllamaClient(BaseModelClient):
             "options": {
                 "temperature": kwargs.get("temperature", 0.2),
                 "num_predict": kwargs.get("max_tokens", 4096),
-            }
+            },
         }
 
         if "tools" in kwargs:
@@ -107,12 +114,11 @@ class OllamaClient(BaseModelClient):
 
         try:
             resp = requests.post(
-                f"{self.base_url}/api/chat",
-                json=payload,
-                timeout=kwargs.get("timeout", 180)
+                f"{self.base_url}/api/chat", json=payload, timeout=kwargs.get("timeout", 180)
             )
             resp.raise_for_status()
-            return resp.json()
+            data: dict = resp.json()
+            return data
         except Exception as e:
             logger.error(f"Ollama chat failed: {e}")
             return {"message": {"content": f"Error: {e}"}, "done": True}
@@ -121,16 +127,14 @@ class OllamaClient(BaseModelClient):
 class OpenAIClient(BaseModelClient):
     """OpenAI API client."""
 
-    def __init__(self, model: str = "gpt-4o", api_key: Optional[str] = None):
+    def __init__(self, model: str = "gpt-4o", api_key: str | None = None):
         super().__init__("https://api.openai.com/v1", api_key or os.environ.get("OPENAI_API_KEY"))
         self.model = model
 
     def generate(self, prompt: str, **kwargs) -> str:
         import requests
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.api_key}"
-        }
+
+        headers = {"Content-Type": "application/json", "Authorization": f"Bearer {self.api_key}"}
         payload = {
             "model": self.model,
             "messages": [{"role": "user", "content": prompt}],
@@ -143,20 +147,19 @@ class OpenAIClient(BaseModelClient):
                 f"{self.base_url}/chat/completions",
                 headers=headers,
                 json=payload,
-                timeout=kwargs.get("timeout", 120)
+                timeout=kwargs.get("timeout", 120),
             )
             resp.raise_for_status()
-            return resp.json()["choices"][0]["message"]["content"]
+            content: str = resp.json()["choices"][0]["message"]["content"]
+            return content
         except Exception as e:
             logger.error(f"OpenAI generation failed: {e}")
             return f"Error: {e}"
 
     def chat(self, messages: list[dict], **kwargs) -> dict:
         import requests
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.api_key}"
-        }
+
+        headers = {"Content-Type": "application/json", "Authorization": f"Bearer {self.api_key}"}
         payload = {
             "model": self.model,
             "messages": messages,
@@ -169,10 +172,11 @@ class OpenAIClient(BaseModelClient):
                 f"{self.base_url}/chat/completions",
                 headers=headers,
                 json=payload,
-                timeout=kwargs.get("timeout", 120)
+                timeout=kwargs.get("timeout", 120),
             )
             resp.raise_for_status()
-            return resp.json()
+            data: dict = resp.json()
+            return data
         except Exception as e:
             logger.error(f"OpenAI chat failed: {e}")
             return {"choices": [{"message": {"content": f"Error: {e}"}}]}
@@ -181,21 +185,24 @@ class OpenAIClient(BaseModelClient):
 class AnthropicClient(BaseModelClient):
     """Anthropic Claude API client."""
 
-    def __init__(self, model: str = "claude-sonnet-4-20250514", api_key: Optional[str] = None):
-        super().__init__("https://api.anthropic.com/v1", api_key or os.environ.get("ANTHROPIC_API_KEY"))
+    def __init__(self, model: str = "claude-sonnet-4-20250514", api_key: str | None = None):
+        super().__init__(
+            "https://api.anthropic.com/v1", api_key or os.environ.get("ANTHROPIC_API_KEY")
+        )
         self.model = model
 
     def generate(self, prompt: str, **kwargs) -> str:
         import requests
+
         headers = {
             "Content-Type": "application/json",
             "x-api-key": self.api_key,
-            "anthropic-version": "2023-06-01"
+            "anthropic-version": "2023-06-01",
         }
         payload = {
             "model": self.model,
             "max_tokens": kwargs.get("max_tokens", 4096),
-            "messages": [{"role": "user", "content": prompt}]
+            "messages": [{"role": "user", "content": prompt}],
         }
 
         try:
@@ -203,16 +210,19 @@ class AnthropicClient(BaseModelClient):
                 f"{self.base_url}/messages",
                 headers=headers,
                 json=payload,
-                timeout=kwargs.get("timeout", 120)
+                timeout=kwargs.get("timeout", 120),
             )
             resp.raise_for_status()
-            return resp.json()["content"][0]["text"]
+            text: str = resp.json()["content"][0]["text"]
+            return text
         except Exception as e:
             logger.error(f"Anthropic generation failed: {e}")
             return f"Error: {e}"
 
     def chat(self, messages: list[dict], **kwargs) -> dict:
-        return {"choices": [{"message": {"content": self.generate(messages[-1]["content"], **kwargs)}}]}
+        return {
+            "choices": [{"message": {"content": self.generate(messages[-1]["content"], **kwargs)}}]
+        }
 
 
 class LMStudioClient(BaseModelClient):
@@ -226,9 +236,10 @@ class LMStudioClient(BaseModelClient):
     def _check_connection(self) -> bool:
         try:
             import requests
+
             resp = requests.get(f"{self.base_url.replace('/v1', '')}/models", timeout=5)
             return resp.status_code == 200
-        except:
+        except Exception:
             return False
 
     def is_available(self) -> bool:
@@ -265,7 +276,7 @@ class ModelOrchestrator:
         """Select model based on task type."""
         if not use_gpu:
             return "llama3.2:3b"
-        
+
         model_map = {
             "code_generation": "deepseek-coder:14b",
             "reasoning": "deepseek-r1:7b",
@@ -278,16 +289,16 @@ class ModelOrchestrator:
     def generate(self, prompt: str, provider: str = "ollama", **kwargs) -> str:
         if provider not in self.clients:
             provider = "ollama"
-        
+
         client = self.clients[provider]
-        
+
         if provider == "ollama":
             return client.generate(prompt, **kwargs)
         elif provider == "openai":
             return client.generate(prompt, **kwargs)
         elif provider == "anthropic":
             return client.generate(prompt, **kwargs)
-        
+
         return client.generate(prompt, **kwargs)
 
     def chat(self, messages: list[dict], provider: str = "ollama", **kwargs) -> dict:

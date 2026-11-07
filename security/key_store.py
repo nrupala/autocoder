@@ -16,8 +16,6 @@ import secrets
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
-
 
 HASH_ALGORITHM = "sha512"
 HMAC_ALGORITHM = "sha512"
@@ -34,7 +32,7 @@ class KeyPair:
     created_at: float
 
     @classmethod
-    def generate(cls) -> "KeyPair":
+    def generate(cls) -> KeyPair:
         return cls(
             encryption_key=secrets.token_bytes(KEY_SIZE),
             signing_key=secrets.token_bytes(KEY_SIZE),
@@ -51,7 +49,7 @@ class KeyPair:
         }
 
     @classmethod
-    def from_dict(cls, data: dict) -> "KeyPair":
+    def from_dict(cls, data: dict) -> KeyPair:
         return cls(
             encryption_key=base64.b64decode(data["encryption_key"]),
             signing_key=base64.b64decode(data["signing_key"]),
@@ -69,16 +67,14 @@ class KeyStore:
         self._cache: dict[str, KeyPair] = {}
 
     def _derive_master_key(self, passphrase: str, salt: bytes) -> bytes:
-        return hashlib.pbkdf2_hmac(
-            "sha512", passphrase.encode("utf-8"), salt, iterations=600000
-        )
+        return hashlib.pbkdf2_hmac("sha512", passphrase.encode("utf-8"), salt, iterations=600000)
 
     def _encrypt_key(self, key_data: bytes, master_key: bytes) -> dict:
         nonce = secrets.token_bytes(NONCE_SIZE)
         keystream = hashlib.sha512(master_key + nonce).digest()
         while len(keystream) < len(key_data):
             keystream += hashlib.sha512(keystream[-64:] + nonce).digest()
-        encrypted = bytes(a ^ b for a, b in zip(key_data, keystream[:len(key_data)]))
+        encrypted = bytes(a ^ b for a, b in zip(key_data, keystream[: len(key_data)], strict=True))
         return {
             "nonce": base64.b64encode(nonce).decode(),
             "data": base64.b64encode(encrypted).decode(),
@@ -90,7 +86,7 @@ class KeyStore:
         keystream = hashlib.sha512(master_key + nonce).digest()
         while len(keystream) < len(data):
             keystream += hashlib.sha512(keystream[-64:] + nonce).digest()
-        return bytes(a ^ b for a, b in zip(data, keystream[:len(data)]))
+        return bytes(a ^ b for a, b in zip(data, keystream[: len(data)], strict=True))
 
     def create_key(self, name: str, passphrase: str) -> KeyPair:
         keypair = KeyPair.generate()
@@ -99,11 +95,16 @@ class KeyStore:
         encrypted = self._encrypt_key(json.dumps(keypair.to_dict()).encode(), master_key)
 
         key_file = self.store_dir / f"{name}.key"
-        key_file.write_text(json.dumps({
-            "version": 1,
-            "salt": base64.b64encode(salt).decode(),
-            "encrypted": encrypted,
-        }, indent=2))
+        key_file.write_text(
+            json.dumps(
+                {
+                    "version": 1,
+                    "salt": base64.b64encode(salt).decode(),
+                    "encrypted": encrypted,
+                },
+                indent=2,
+            )
+        )
 
         self._cache[name] = keypair
         return keypair
@@ -113,7 +114,7 @@ class KeyStore:
         if not key_file.exists():
             raise FileNotFoundError(f"Key not found: {name}")
 
-        data = json.loads(key_file.read_text(encoding='utf-8'))
+        data = json.loads(key_file.read_text(encoding="utf-8"))
         salt = base64.b64decode(data["salt"])
         master_key = self._derive_master_key(passphrase, salt)
         decrypted = self._decrypt_key(data["encrypted"], master_key)
@@ -138,7 +139,7 @@ def hash_file(path: Path, algorithm: str = HASH_ALGORITHM) -> str:
 
 
 def compute_hmac(data: bytes, key: bytes, algorithm: str = HMAC_ALGORITHM) -> str:
-    return hmac.new(key, data, hashlib.new(algorithm)).hexdigest()
+    return hmac.new(key, data, algorithm).hexdigest()
 
 
 def verify_hmac(data: bytes, key: bytes, signature: str, algorithm: str = HMAC_ALGORITHM) -> bool:
@@ -163,7 +164,7 @@ class AuditLog:
         if not self.log_file.exists():
             self.log_file.write_text("")
 
-    def add_entry(self, action: str, details: dict = None):
+    def add_entry(self, action: str, details: dict | None = None):
         entry = {
             "timestamp": time.time(),
             "user": os.environ.get("USER", "unknown"),
@@ -181,7 +182,7 @@ class AuditLog:
                 if line:
                     json.loads(line)
             return True
-        except:
+        except Exception:
             return False
 
     def get_entries(self, limit: int = 100) -> list[AuditEntry]:

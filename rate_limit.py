@@ -1,8 +1,10 @@
 # Copyright (c) 2026 AutoCoder Team.
 # Licensed under the MIT License - see LICENSE at the repository root.
 """Token Bucket Rate Limiter"""
-import time
+
 import threading
+import time
+
 
 class RateLimiter:
     def __init__(self, rate=10, per=1.0):
@@ -11,7 +13,7 @@ class RateLimiter:
         self.tokens = float(rate)
         self.last_update = time.time()
         self.lock = threading.Lock()
-    
+
     def allow(self):
         with self.lock:
             now = time.time()
@@ -22,7 +24,7 @@ class RateLimiter:
                 self.tokens -= 1
                 return True
             return False
-    
+
     def wait(self):
         while not self.allow():
             time.sleep(0.01)

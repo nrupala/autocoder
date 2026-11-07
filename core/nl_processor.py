@@ -69,7 +69,7 @@ class IntentParser:
             entities=entities,
             context={"history": self.context_history[-5:]},
             sentiment=self._analyze_sentiment(text),
-            raw_input=user_input
+            raw_input=user_input,
         )
 
     def _classify_intent(self, text: str) -> str:
@@ -86,10 +86,19 @@ class IntentParser:
 
     def _extract_framework(self, text: str, entities: dict):
         frameworks = {
-            "fastapi": "fastapi", "flask": "flask", "django": "django",
-            "react": "react", "vue": "vue", "angular": "angular", "next": "nextjs",
-            "express": "express", "spring": "spring", "gin": "gin",
-            "rails": "rails", "laravel": "laravel", "nextjs": "nextjs"
+            "fastapi": "fastapi",
+            "flask": "flask",
+            "django": "django",
+            "react": "react",
+            "vue": "vue",
+            "angular": "angular",
+            "next": "nextjs",
+            "express": "express",
+            "spring": "spring",
+            "gin": "gin",
+            "rails": "rails",
+            "laravel": "laravel",
+            "nextjs": "nextjs",
         }
         for fw in frameworks:
             if fw in text:
@@ -121,10 +130,12 @@ class IntentParser:
         return "neutral"
 
     def add_to_history(self, intent: ParsedIntent):
-        self.context_history.append({
-            "intent": intent.intent,
-            "language": intent.entities.get("language"),
-            "timestamp": __import__("time").time()
-        })
+        self.context_history.append(
+            {
+                "intent": intent.intent,
+                "language": intent.entities.get("language"),
+                "timestamp": __import__("time").time(),
+            }
+        )
         if len(self.context_history) > 50:
             self.context_history = self.context_history[-50:]
