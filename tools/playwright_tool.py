@@ -5,10 +5,8 @@ AutoCoder E2E Testing with Playwright
 """
 
 import asyncio
-import json
-from pathlib import Path
-from typing import Optional
 from dataclasses import dataclass
+from typing import Any
 
 
 @dataclass
@@ -21,18 +19,17 @@ class BrowserConfig:
 class PlaywrightAutomation:
     """Browser automation for AutoCoder."""
 
-    def __init__(self, config: BrowserConfig = None):
+    def __init__(self, config: BrowserConfig | None = None):
         self.config = config or BrowserConfig()
-        self.browser = None
-        self.context = None
-        self.page = None
+        self.browser: Any = None
+        self.context: Any = None
+        self.page: Any = None
 
     async def __aenter__(self):
         from playwright.async_api import async_playwright
+
         self.playwright = await async_playwright().start()
-        self.browser = await self.playwright.chromium.launch(
-            headless=self.config.headless
-        )
+        self.browser = await self.playwright.chromium.launch(headless=self.config.headless)
         self.context = await self.browser.new_context()
         self.page = await self.context.new_page()
         return self
@@ -40,7 +37,7 @@ class PlaywrightAutomation:
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         if self.browser:
             await self.browser.close()
-        if hasattr(self, 'playwright'):
+        if hasattr(self, "playwright"):
             await self.playwright.stop()
 
     async def navigate(self, url: str):
@@ -53,10 +50,12 @@ class PlaywrightAutomation:
         await self.page.fill(selector, value)
 
     async def get_text(self, selector: str) -> str:
-        return await self.page.text_content(selector)
+        text: str = await self.page.text_content(selector) or ""
+        return text
 
     async def get_html(self) -> str:
-        return await self.page.content()
+        html: str = await self.page.content()
+        return html
 
     async def screenshot(self, path: str):
         await self.page.screenshot(path=path)
@@ -64,17 +63,17 @@ class PlaywrightAutomation:
     async def evaluate(self, script: str):
         return await self.page.evaluate(script)
 
-    async def wait_for_selector(self, selector: str, timeout: int = None):
+    async def wait_for_selector(self, selector: str, timeout: int | None = None):
         await self.page.wait_for_selector(selector, timeout=timeout or self.config.timeout)
 
 
 class PlaywrightTool:
     """Playwright tool for automation tasks."""
 
-    def __init__(self, config: BrowserConfig = None):
+    def __init__(self, config: BrowserConfig | None = None):
         self.config = config or BrowserConfig()
 
-    async def screenshot(self, url: str, path: str, selector: str = None) -> str:
+    async def screenshot(self, url: str, path: str, selector: str | None = None) -> str:
         """Take screenshot of a URL."""
         async with PlaywrightAutomation(self.config) as pw:
             await pw.navigate(url)
@@ -94,7 +93,7 @@ class PlaywrightTool:
             for key, selector in selectors.items():
                 try:
                     results[key] = await pw.get_text(selector)
-                except:
+                except Exception:
                     results[key] = None
         return results
 
@@ -122,7 +121,9 @@ class PlaywrightTool:
                         await pw.wait_for_selector(step["selector"])
                     elif action == "assert_text":
                         text = await pw.get_text(step["selector"])
-                        assert step["expected"] in text, f"Expected '{step['expected']}' in '{text}'"
+                        assert step["expected"] in text, (
+                            f"Expected '{step['expected']}' in '{text}'"
+                        )
                     results.append({"step": step, "status": "pass"})
                 except Exception as e:
                     results.append({"step": step, "status": "fail", "error": str(e)})

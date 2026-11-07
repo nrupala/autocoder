@@ -7,11 +7,11 @@ AutoCoder's custom implementation of Model Context Protocol types.
 Based on JSON-RPC 2.0 specification.
 """
 
-from typing import Any, Dict, List, Optional, Union
-from dataclasses import dataclass, field
-from enum import Enum
 import json
 import uuid
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Any
 
 
 class MCPErrorCode(Enum):
@@ -26,65 +26,63 @@ class MCPErrorCode(Enum):
 class MCPError:
     code: int
     message: str
-    data: Optional[Any] = None
+    data: Any | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         result = {"code": self.code, "message": self.message}
         if self.data is not None:
             result["data"] = self.data
         return result
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "MCPError":
+    def from_dict(cls, data: dict[str, Any]) -> "MCPError":
         return cls(
             code=data.get("code", -32603),
             message=data.get("message", "Internal error"),
-            data=data.get("data")
+            data=data.get("data"),
         )
 
 
 @dataclass
 class MCPRequest:
-    jsonrpc: str = "2.0"
-    id: Union[str, int, None]
     method: str
-    params: Optional[Dict[str, Any]] = field(default_factory=dict)
+    id: str | int | None
+    jsonrpc: str = "2.0"
+    params: dict[str, Any] | None = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         result = {"jsonrpc": self.jsonrpc, "method": self.method, "id": self.id}
         if self.params:
             result["params"] = self.params
         return result
 
     @classmethod
-    def create(cls, method: str, params: Optional[Dict] = None, id: Union[str, int, None] = None) -> "MCPRequest":
-        return cls(
-            id=id or str(uuid.uuid4()),
-            method=method,
-            params=params or {}
-        )
+    def create(
+        cls, method: str, params: dict | None = None, id: str | int | None = None
+    ) -> "MCPRequest":
+        return cls(id=id or str(uuid.uuid4()), method=method, params=params or {})
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "MCPRequest":
+    def from_dict(cls, data: dict[str, Any]) -> "MCPRequest":
         return cls(
             jsonrpc=data.get("jsonrpc", "2.0"),
             id=data.get("id"),
             method=data.get("method", ""),
-            params=data.get("params", {})
+            params=data.get("params", {}),
         )
 
 
 @dataclass
 class MCPResponse:
+    id: str | int | None
     jsonrpc: str = "2.0"
-    id: Union[str, int, None]
-    result: Optional[Any] = None
-    error: Optional[MCPError] = None
+    result: Any | None = None
+    error: MCPError | None = None
 
     def is_error(self) -> bool:
         return self.error is not None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         result = {"jsonrpc": self.jsonrpc, "id": self.id}
         if self.error:
             result["error"] = self.error.to_dict()
@@ -93,7 +91,7 @@ class MCPResponse:
         return result
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "MCPResponse":
+    def from_dict(cls, data: dict[str, Any]) -> "MCPResponse":
         error = None
         if "error" in data:
             error = MCPError.from_dict(data["error"])
@@ -101,14 +99,14 @@ class MCPResponse:
             jsonrpc=data.get("jsonrpc", "2.0"),
             id=data.get("id"),
             result=data.get("result"),
-            error=error
+            error=error,
         )
 
 
-@dataclass 
+@dataclass
 class MCPMessage:
     request: MCPRequest
-    response: Optional[MCPResponse] = None
+    response: MCPResponse | None = None
 
     def to_json(self) -> str:
         return json.dumps(self.request.to_dict())
@@ -116,22 +114,20 @@ class MCPMessage:
     @classmethod
     def from_json(cls, json_str: str) -> "MCPMessage":
         data = json.loads(json_str)
-        return cls(
-            request=MCPRequest.from_dict(data)
-        )
+        return cls(request=MCPRequest.from_dict(data))
 
 
 @dataclass
 class MCPToolDefinition:
     name: str
     description: str
-    input_schema: Dict[str, Any]
+    input_schema: dict[str, Any]
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "name": self.name,
             "description": self.description,
-            "inputSchema": self.input_schema
+            "inputSchema": self.input_schema,
         }
 
 
@@ -139,10 +135,10 @@ class MCPToolDefinition:
 class MCPResourceDefinition:
     uri: str
     name: str
-    description: Optional[str] = None
-    mime_type: Optional[str] = None
+    description: str | None = None
+    mime_type: str | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         result = {"uri": self.uri, "name": self.name}
         if self.description:
             result["description"] = self.description
@@ -155,9 +151,9 @@ class MCPResourceDefinition:
 class MCPPromptDefinition:
     name: str
     description: str
-    arguments: Optional[List[Dict[str, Any]] = None
+    arguments: list[dict[str, Any]] | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         result = {"name": self.name, "description": self.description}
         if self.arguments:
             result["arguments"] = self.arguments

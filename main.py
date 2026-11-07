@@ -18,7 +18,6 @@ AutoCoder is its own commander.
 """
 
 import sys
-import os
 from pathlib import Path
 
 # Add autocoder to path
@@ -30,7 +29,7 @@ COMMANDS = {
     "cli": "Run CLI",
     "api": "Run API daemon",
     "build": "Build all repos",
-    "test": "Test all repos", 
+    "test": "Test all repos",
     "push": "Push to GitHub",
     "status": "Show status",
     "version": "Show version",
@@ -39,56 +38,64 @@ COMMANDS = {
 
 def main():
     cmd = sys.argv[1] if len(sys.argv) > 1 else "api"
-    
+
     if cmd == "gui":
         from gui import run_gui
+
         run_gui()
-    
+
     elif cmd == "api" or cmd == "daemon":
         print("Starting AutoCoder API daemon on port 5000...")
         from gui import app
-        app.run(host='0.0.0.0', port=5000, debug=False)
-    
+
+        app.run(host="0.0.0.0", port=5000, debug=False)
+
     elif cmd == "cli":
         from cli import run_cli
+
         run_cli()
-    
+
     elif cmd == "build":
         from build import AutoCoderBuild
+
         builder = AutoCoderBuild()
         results = builder.build_all()
         for repo, result in results.items():
             print(f"{repo}: {result.status}")
-    
+
     elif cmd == "test":
         from build import AutoCoderBuild
+
         builder = AutoCoderBuild()
         results = builder.test_all()
         for repo, result in results.items():
             print(f"{repo}: {result.status}")
-    
+
     elif cmd == "push":
         from build import AutoCoderBuild
+
         builder = AutoCoderBuild()
         results = builder.push_all("pushed by Nrupal built with autocoder")
         for repo, result in results.items():
             print(f"{repo}: {result.status}")
-    
+
     elif cmd == "status":
         from version import get_all_versions
+
         print("AutoCoder Status:")
         print(f"  Version: {get_all_versions().get('autocoder', '0.1.0')}")
         print(f"  Repos: {list(get_all_versions().keys())}")
-    
+
     elif cmd == "version":
         from version import get_all_versions
+
         print(f"autocoder: {get_all_versions().get('autocoder', '0.1.0')}")
-    
+
     elif cmd == "help":
         print("AutoCoder Commands:")
         for c, d in COMMANDS.items():
             print(f"  {c:10} - {d}")
-    
+
     else:
         print(f"Unknown command: {cmd}")
         print("Run 'python main.py help' for available commands")

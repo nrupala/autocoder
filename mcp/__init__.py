@@ -8,18 +8,18 @@ Built from scratch with JSON-RPC 2.0 protocol.
 """
 
 from .client import MCPClient, MCPConnection
-from .server import MCPServer, MCPTool, MCPResource, MCPPrompt
-from .types import MCPMessage, MCPRequest, MCPResponse, MCPError
+from .server import MCPPromptTemplate, MCPResource, MCPServer, MCPTool
+from .types import MCPError, MCPMessage, MCPRequest, MCPResponse
 
 __all__ = [
     "MCPClient",
-    "MCPConnection", 
+    "MCPConnection",
     "MCPServer",
     "MCPTool",
-    "MCPResource", 
-    "MCPPrompt",
+    "MCPResource",
+    "MCPPromptTemplate",
     "MCPMessage",
-    "MCPRequest", 
+    "MCPRequest",
     "MCPResponse",
     "MCPError",
 ]

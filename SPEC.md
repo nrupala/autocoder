@@ -97,25 +97,25 @@ A next-generation autonomous coding agent that combines formal verification, mul
 ```python
 class NLProcessor:
     """Processes natural language input and extracts actionable intent."""
-    
+
     def __init__(self):
-        self.intent_parser = IntentParser()      # Classify intent
-        self.entity_extractor = EntityExtractor() # Extract code entities
+        self.intent_parser = IntentParser()  # Classify intent
+        self.entity_extractor = EntityExtractor()  # Extract code entities
         self.context_tracker = ContextTracker()  # Session memory
         self.sentiment_analyzer = SentimentAnalyzer()
-    
+
     def process(self, user_input: str) -> ParsedIntent:
         intent = self.intent_parser.classify(user_input)
         entities = self.entity_extractor.extract(user_input)
         context = self.context_tracker.get_context()
         sentiment = self.sentiment_analyzer.analyze(user_input)
-        
+
         return ParsedIntent(
             intent=intent,
             entities=entities,
             context=context,
             sentiment=sentiment,
-            raw_input=user_input
+            raw_input=user_input,
         )
 ```
 
@@ -123,46 +123,46 @@ class NLProcessor:
 ```python
 class ModelOrchestrator:
     """Routes requests to optimal model based on task type."""
-    
+
     MODELS = {
         "code_generation": {
             "primary": "ollama:deepseek-coder:14b",
             "fallback": ["ollama:qwen2.5-coder", "openai:gpt-4o"],
-            "gpu_preferred": True
+            "gpu_preferred": True,
         },
         "reasoning": {
             "primary": "ollama:deepseek-r1",
             "fallback": ["ollama:llama3.2"],
-            "gpu_preferred": True
+            "gpu_preferred": True,
         },
         "verification": {
             "primary": "ollama:stable-code",
             "fallback": ["openai:gpt-4o"],
-            "gpu_preferred": False
+            "gpu_preferred": False,
         },
         "natural_response": {
             "primary": "ollama:llama3.2",
             "fallback": ["claude:claude-sonnet"],
-            "gpu_preferred": False
+            "gpu_preferred": False,
         },
         "web_search": {
             "primary": "perplexity:llama3.1-sonar",
             "fallback": ["websearch"],
-            "gpu_preferred": False
-        }
+            "gpu_preferred": False,
+        },
     }
-    
+
     def select_model(self, task_type: str, gpu_available: bool) -> str:
         """Select optimal model based on task and hardware."""
         if task_type not in self.MODELS:
             task_type = "code_generation"
-        
+
         candidates = self.MODELS[task_type]["primary"].split(",")
-        
+
         for model in candidates:
             if gpu_available or not self.MODELS[task_type]["gpu_preferred"]:
                 return self._check_model_availability(model)
-        
+
         return "cpu_fallback"
 ```
 
@@ -170,28 +170,24 @@ class ModelOrchestrator:
 ```python
 class ToolRegistry:
     """Manages available tools for the agent."""
-    
+
     BUILTIN_TOOLS = [
         # File operations
         Tool("read_file", "Read file contents", {"path": "string"}),
         Tool("write_file", "Write content to file", {"path": "string", "content": "string"}),
         Tool("list_files", "List directory contents", {"path": "string"}),
         Tool("glob", "Find files by pattern", {"pattern": "string"}),
-        
         # Code operations
         Tool("grep", "Search code content", {"pattern": "string", "path": "string"}),
         Tool("format_code", "Format code", {"path": "string", "language": "string"}),
         Tool("lint_code", "Lint code", {"path": "string", "language": "string"}),
         Tool("test_generate", "Generate tests", {"path": "string", "framework": "string"}),
-        
         # Execution
         Tool("run_command", "Execute shell command", {"cmd": "string", "timeout": "int"}),
         Tool("run_tests", "Run test suite", {"path": "string", "verbose": "bool"}),
-        
         # Web
         Tool("web_search", "Search the web", {"query": "string", "num_results": "int"}),
         Tool("fetch_url", "Fetch URL content", {"url": "string"}),
-        
         # AI
         Tool("chat", "Chat with AI model", {"prompt": "string", "model": "string"}),
         Tool("generate_code", "Generate code", {"spec": "string", "language": "string"}),
@@ -250,35 +246,31 @@ class HardwareOptimizer:
 ```python
 class VerificationEngine:
     """Integrates formal verification via Lean 4."""
-    
+
     def __init__(self):
         self.lean_available = self._check_lean()
-    
+
     def generate_spec(self, nl_description: str) -> LeanSpec:
         """Convert NL to Lean 4 specification."""
         prompt = SPEC_PROMPT.format(description=nl_description)
         lean_code = ollama_generate("stable-code", prompt)
         return self._parse_spec(lean_code)
-    
+
     def verify(self, spec: LeanSpec) -> ProofResult:
         """Verify specification with Lean 4."""
         if not self.lean_available:
             return ProofResult(status="skipped", reason="Lean not installed")
-        
+
         # Write spec to file
         spec_file = self._write_spec(spec)
-        
+
         # Run lean to verify
-        result = subprocess.run(
-            ["lake", "build"],
-            cwd=LEAN_PROJECT_DIR,
-            capture_output=True
-        )
-        
+        result = subprocess.run(["lake", "build"], cwd=LEAN_PROJECT_DIR, capture_output=True)
+
         return ProofResult(
             status="verified" if result.returncode == 0 else "failed",
             proof_steps=self._extract_tactics(spec_file),
-            lean_output=result.stdout
+            lean_output=result.stdout,
         )
 ```
 
@@ -286,23 +278,23 @@ class VerificationEngine:
 ```python
 class KnowledgeSystem:
     """Comprehensive knowledge management."""
-    
+
     def __init__(self):
-        self.episodic_memory = EpisodicMemory()     # Session history
-        self.semantic_memory = SemanticMemory()      # Facts learned
-        self.knowledge_graph = KnowledgeGraph()     # Entity relationships
-        self.vector_store = VectorStore()           # Semantic search
-        self.pdca_learner = PDCALearner()            # Self-improvement
-    
+        self.episodic_memory = EpisodicMemory()  # Session history
+        self.semantic_memory = SemanticMemory()  # Facts learned
+        self.knowledge_graph = KnowledgeGraph()  # Entity relationships
+        self.vector_store = VectorStore()  # Semantic search
+        self.pdca_learner = PDCALearner()  # Self-improvement
+
     def store_interaction(self, interaction: Interaction):
         """Store interaction for future reference."""
         self.episodic_memory.save(interaction)
         self.vector_store.embed(interaction)
-        
+
         # Self-learn if significant
         if interaction.significance > 0.8:
             self.pdca_learner.process(interaction)
-    
+
     def retrieve(self, query: str, k: int = 5) -> list[MemoryEntry]:
         """Retrieve relevant memories."""
         return self.vector_store.search(query, k=k)
@@ -312,32 +304,25 @@ class KnowledgeSystem:
 ```python
 class SecurityLayer:
     """Security from axiomcode best practices."""
-    
+
     def __init__(self):
         self.key_store = KeyStore()
         self.audit_log = AuditLog()
         self.rate_limiter = RateLimiter()
         self.sandbox = SecureSandbox()
-    
+
     def sign_code(self, code: CodeArtifact, key_name: str) -> SignedArtifact:
         """Cryptographically sign code artifact."""
         key = self.key_store.load_key(key_name)
         signature = sign_binary(code.binary, key.signing_key)
-        
+
         return SignedArtifact(
-            code=code,
-            signature=signature,
-            key_id=key.key_id,
-            timestamp=time.time()
+            code=code, signature=signature, key_id=key.key_id, timestamp=time.time()
         )
-    
+
     def verify_artifact(self, artifact: SignedArtifact) -> bool:
         """Verify signed artifact integrity."""
-        return verify_signature(
-            artifact.code.binary,
-            artifact.signature,
-            artifact.key_id
-        )
+        return verify_signature(artifact.code.binary, artifact.signature, artifact.key_id)
 ```
 
 ---

@@ -7,8 +7,9 @@ APIs for mutual interaction between all repos.
 Built by AutoCoder.
 """
 
-from flask import Flask, jsonify, request
 import logging
+
+from flask import Flask, jsonify, request
 
 app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -24,11 +25,13 @@ REPOS = {
 
 @app.route("/")
 def index():
-    return jsonify({
-        "name": "AutoCoder Cross-Repo API",
-        "version": "1.0.0",
-        "repos": {k: f"http://localhost:{v['port']}" for k, v in REPOS.items()}
-    })
+    return jsonify(
+        {
+            "name": "AutoCoder Cross-Repo API",
+            "version": "1.0.0",
+            "repos": {k: f"http://localhost:{v['port']}" for k, v in REPOS.items()},
+        }
+    )
 
 
 @app.route("/health")
@@ -56,15 +59,17 @@ def generate():
     data = request.json
     prompt = data.get("prompt", "")
     target = data.get("repo", "autocoder")
-    
+
     if target not in REPOS:
         return jsonify({"error": "Repo not found"}), 404
-    
+
     # Import from target repo
     try:
         import sys
+
         sys.path.insert(0, REPOS[target]["path"])
         from engine import generate as gen
+
         result = gen(prompt)
         return jsonify({"repo": target, "code": result})
     except Exception as e:
@@ -77,21 +82,29 @@ def build_repo(repo):
     """Build a specific repo."""
     import subprocess
     import sys
-    
+
     if repo not in REPOS:
         return jsonify({"error": "Repo not found"}), 404
-    
+
     path = REPOS[repo]["path"]
     try:
         result = subprocess.run(
-            [sys.executable, "-c", f"import sys; sys.path.insert(0, '{path}'); import build; print('OK')"],
-            capture_output=True, text=True, timeout=10
+            [
+                sys.executable,
+                "-c",
+                f"import sys; sys.path.insert(0, '{path}'); import build; print('OK')",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=10,
         )
-        return jsonify({
-            "repo": repo,
-            "status": "success" if result.returncode == 0 else "failed",
-            "output": result.stdout
-        })
+        return jsonify(
+            {
+                "repo": repo,
+                "status": "success" if result.returncode == 0 else "failed",
+                "output": result.stdout,
+            }
+        )
     except Exception as e:
         logger.error(f"Build error ({repo}): {e}")
         return jsonify({"error": "Build failed"}), 500
@@ -104,7 +117,7 @@ def build_all():
     for repo in REPOS:
         try:
             results[repo] = "success"
-        except:
+        except Exception:
             results[repo] = "failed"
     return jsonify(results)
 
@@ -113,13 +126,15 @@ def build_all():
 def versions():
     """Get all repo versions."""
     import sys
+
     results = {}
     for repo, info in REPOS.items():
         try:
             sys.path.insert(0, info["path"])
             from version import get_version
+
             results[repo] = get_version(repo)
-        except:
+        except Exception:
             results[repo] = "0.1.0"
     return jsonify(results)
 

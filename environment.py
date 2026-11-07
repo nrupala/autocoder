@@ -52,9 +52,10 @@ DEBUG = ENV == "development"
 # Serialization
 SERIALIZATION_FORMAT = "json"  # json, pickle, msgpack
 
+
 class Environment:
     """Persistent environment manager."""
-    
+
     def __init__(self):
         self.work_dir = WORK_DIR
         self.data_dir = DATA_DIR
@@ -62,21 +63,22 @@ class Environment:
         self.models_dir = MODELS_DIR
         self.env = ENV
         self.debug = DEBUG
-        
+
     def get_db_path(self) -> str:
         return DB_PATH
-    
+
     def get_cache_dir(self) -> str:
         return str(CACHE_DIR)
-    
+
     def get_log_file(self) -> str:
         return str(LOG_FILE)
-    
+
     def is_production(self) -> bool:
         return ENV == "production"
-    
+
     def is_development(self) -> bool:
         return ENV == "development"
+
 
 # Global environment
 env = Environment()
