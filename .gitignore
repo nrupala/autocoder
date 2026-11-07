@@ -58,7 +58,8 @@ coverage.xml
 .env.local
 
 # Memory / State
-memory/
+# (no bare "memory/" entry: memory/ is the source package, not state;
+#  runtime state lives under ~/.autocoder and .autocoder/)
 *.jsonl
 knowledge_graph.bin
 
